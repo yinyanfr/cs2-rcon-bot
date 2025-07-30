@@ -1,0 +1,34 @@
+{
+  "name": "cs2-rcon-bot",
+  "version": "1.0.0",
+  "description": "A telegram bot that enables cs2 server rcon",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "NODE_ENV=development tsx src/index.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yinyanfr/cs2-rcon-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yinyanfr/cs2-rcon-bot/issues"
+  },
+  "homepage": "https://github.com/yinyanfr/cs2-rcon-bot#readme",
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "@types/node-telegram-bot-api": "^0.64.9",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "node-telegram-bot-api": "^0.66.0",
+    "rcon-srcds": "^2.1.0",
+    "winston": "^3.17.0"
+  }
+}
