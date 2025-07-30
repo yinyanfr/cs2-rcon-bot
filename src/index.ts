@@ -1,3 +1,4 @@
+import { CronJob } from "cron";
 import TelegramBot from "node-telegram-bot-api";
 import configs from "./configs";
 
@@ -10,6 +11,7 @@ import {
   changeAliasOrMap,
   getStatus,
   restartDocker,
+  restartFinished,
   type ServerStatus,
   useRcon,
 } from "./features";
@@ -70,11 +72,6 @@ bot.on("message", async (msg) => {
                 chatId,
                 `服务器已成功重启，可能需要等到3-5分钟（需要更新的情况时间更长），请耐心等待。`
               );
-              logger.info(
-                `${uid} - ${first_name} ${
-                  last_name ?? ""
-                } has restarted the server.`
-              );
             });
 
             for (let retry = 0; retry < 5; retry++) {
@@ -86,6 +83,12 @@ bot.on("message", async (msg) => {
                   await bot.sendMessage(
                     chatId,
                     `服务器正在运行，模式：${gameAlias}，地图：${map}，服务器中当前有${players}位玩家。`
+                  );
+                  restartFinished();
+                  return logger.info(
+                    `${uid} - ${first_name} ${
+                      last_name ?? ""
+                    } has restarted the server.`
                   );
                 }
               } catch (error) {
@@ -120,6 +123,8 @@ bot.on("message", async (msg) => {
       );
     } else if (error === ERROR_CODE.LOCKED) {
       await bot.sendMessage(chatId, "当前有正在进行的操作，请等待其完成。");
+    } else if (error === ERROR_CODE.RESTARTING) {
+      await bot.sendMessage(chatId, "服务器正在重启，请耐心等待。");
     } else if (error === ERROR_CODE.OUT_OF_SERVICE) {
       await bot.sendMessage(chatId, `服务器挂惹`);
     } else if (error === ERROR_CODE.SLOWDOWN) {
@@ -135,3 +140,23 @@ bot.on("message", async (msg) => {
     );
   }
 });
+
+const autoRestart = new CronJob(
+  "0 4 * * *",
+  async function () {
+    await useRcon(async () => {
+      try {
+        await restartDocker();
+        await sleep(10 * 60 * 1000);
+        restartFinished();
+        return logger.info("Server auto restarted.");
+      } catch (error) {
+        bot.sendMessage(configs.groupId, "服务器自动重启失败");
+        return logger.info("Server auto restart failed.");
+      }
+    });
+  },
+  null,
+  true,
+  "Asia/Hong_Kong"
+);

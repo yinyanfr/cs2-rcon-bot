@@ -14,6 +14,7 @@ export enum ERROR_CODE {
   OUT_OF_SERVICE = "OUT_OF_SERVICE",
   FAILED = "FAILED",
   LOCKED = "LOCKED",
+  RESTARTING = "RESTARTING",
 }
 
 export const logger = winston.createLogger({

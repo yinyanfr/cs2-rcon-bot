@@ -26,6 +26,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "cron": "^4.3.2",
     "dayjs": "^1.11.13",
     "node-telegram-bot-api": "^0.66.0",
     "rcon-srcds": "^2.1.0",

@@ -1,8 +1,11 @@
 import { exec } from "node:child_process";
+import { promisify } from "node:util";
 import { cs2 } from "../../configs";
 import Rcon from "rcon-srcds";
 import { AcceptedAlias, getAlias, MapPool, parseAlias } from "./lib";
 import { ERROR_CODE, slowdownOver } from "../../lib";
+
+const execPromise = promisify(exec);
 
 const { host, port, password } = cs2;
 
@@ -22,6 +25,7 @@ export interface ServerStatus {
   map: string;
   players: number;
   lastModified: Date;
+  restarting: boolean;
 }
 
 const status: ServerStatus = {
@@ -30,12 +34,16 @@ const status: ServerStatus = {
   map: "de_mirage",
   players: 0,
   lastModified: new Date(),
+  restarting: false,
 };
 
 export async function useRcon(
   action: (cs2Server: Rcon, status: ServerStatus) => Promise<any>
 ) {
   const cs2Server = new Rcon(options);
+  if (status.restarting === true) {
+    throw ERROR_CODE.RESTARTING;
+  }
   if (status.connected === true) {
     throw ERROR_CODE.LOCKED;
   }
@@ -100,16 +108,11 @@ export function changeAliasOrMap(name: string) {
   };
 }
 
-export function restartDocker() {
-  return new Promise((resolve, reject) => {
-    exec(
-      "cd /etc/docker/containers/cs2/ && docker compose restart",
-      (err, stdout, stderr) => {
-        if (err) {
-          reject(err);
-        }
-        resolve({ stdout, stderr });
-      }
-    );
-  });
+export async function restartDocker() {
+  status.restarting = true;
+  await execPromise("cd /etc/docker/containers/cs2/ && docker compose restart");
+}
+
+export function restartFinished() {
+  status.restarting = false;
 }
