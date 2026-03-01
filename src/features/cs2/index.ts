@@ -38,14 +38,17 @@ const status: ServerStatus = {
 };
 
 export async function useRcon(
-  action: (cs2Server: Rcon, status: ServerStatus) => Promise<any>
+  action: (cs2Server: Rcon, status: ServerStatus) => Promise<any>,
+  ignoreLock = false
 ) {
   const cs2Server = new Rcon(options);
-  if (status.restarting === true) {
-    throw ERROR_CODE.RESTARTING;
-  }
-  if (status.connected === true) {
-    throw ERROR_CODE.LOCKED;
+  if (!ignoreLock) {
+    if (status.restarting === true) {
+      throw ERROR_CODE.RESTARTING;
+    }
+    if (status.connected === true) {
+      throw ERROR_CODE.LOCKED;
+    }
   }
   try {
     await cs2Server.authenticate(password);
@@ -55,7 +58,11 @@ export async function useRcon(
   status.connected = true;
   try {
     const result = await action(cs2Server, status);
-    await cs2Server.disconnect();
+    if (status.restarting === false) {
+      await cs2Server.disconnect().catch((err) => {
+        console.log(err);
+      });
+    }
     status.connected = false;
     return result;
   } catch (error) {

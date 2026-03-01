@@ -77,7 +77,7 @@ bot.on("message", async (msg) => {
             for (let retry = 0; retry < 5; retry++) {
               await sleep(2 * 60 * 1000);
               try {
-                const status: ServerStatus = await useRcon(getStatus);
+                const status: ServerStatus = await useRcon(getStatus, true);
                 if (status) {
                   const { gameAlias, map, players } = status;
                   await bot.sendMessage(
@@ -92,6 +92,7 @@ bot.on("message", async (msg) => {
                   );
                 }
               } catch (error) {
+                console.log(error);
                 await bot.sendMessage(
                   chatId,
                   `服务器准备中，2分钟后重新查询。`
